@@ -106,7 +106,7 @@ export default class AdjacencyList {
 	}
 
 	static sortCliques(cliques: Clique[]): Clique[] {
-		return cliques.sort((a, b) => a.size - b.size);
+		return cliques.sort((a, b) => b.size - a.size);
 	}
 
 	static fromMatrix(labels: string[], matrix: number[][]): AdjacencyList {
