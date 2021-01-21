@@ -7,11 +7,12 @@ export default class AdjacencyList {
 	private edgesOut: Map<string, Set<Node>>;
 	private counts: {nodes: number, edges: number}
 
-	constructor() {
+	constructor(nodes?: Set<Node>) {
 		this.nodes = new Set();
 		this.edgesIn = new Map();
 		this.edgesOut = new Map();
 		this.counts = {nodes: 0, edges: 0};
+		if (nodes) nodes.forEach(this.addNode.bind(this));
 	}
 
 	get nodeCount(): number {
@@ -38,18 +39,17 @@ export default class AdjacencyList {
 		if (!this.nodes.has(tail)) return false;
 
 		const headOut = this.edgesOut.get(head)!;
-		if (headOut!.has(tail)) return false;
+		if (headOut.has(tail)) return false;
 		headOut.add(tail);
 		this.edgesIn.get(tail)!.add(head);
 
-		this.counts.edges++;
+		if (!this.edgesOut.get(tail)!.has(head)) this.counts.edges++;
 		return true;
 	}
 
 	addEdgeUndirected(a: string, b: string): boolean {
 		this.addEdge(a, b);
 		this.addEdge(b, a);
-		this.counts.edges--;
 		return true;
 	}
 
@@ -122,6 +122,20 @@ export default class AdjacencyList {
 		}
 
 		return al;
+	}
+
+	static getComplement(al: AdjacencyList): AdjacencyList {
+		const comp = new AdjacencyList(al.nodes);
+
+		for (const head of comp.nodes) {
+			const tails = al.edgesOut.get(head)!;
+			for (const tail of comp.nodes) {
+				if (head === tail || tails.has(tail)) continue;
+				comp.addEdge(head, tail);
+			}
+		}
+
+		return comp;
 	}
 }
 

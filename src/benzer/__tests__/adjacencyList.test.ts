@@ -1,7 +1,11 @@
 import AdjacencyList, {Clique} from "../adjacencyList";
 
 describe("AdjacencyList", () => {
-	const al = new AdjacencyList()
+	let al: AdjacencyList;
+
+	it("gets created successfully", () => {
+		al = new AdjacencyList();
+	});
 
 	it("allows adding nodes", () => {
 		al.addNode('a');
@@ -21,6 +25,14 @@ describe("AdjacencyList", () => {
 		expect(al.edgeCount).toBe(4);
 	});
 
+	it("can generate complement graph", () => {
+		const comp = AdjacencyList.getComplement(al);
+		expect(comp.edgeCount).toBe(2);
+		expect(comp.hasEdge('b', 'd')).toBe(true);
+		expect(comp.hasEdge('d', 'b')).toBe(true);
+		expect(comp.hasEdge('c', 'd')).toBe(true);
+		expect(comp.hasEdge('d', 'c')).toBe(true);
+	});
 });
 
 describe("Bron-Kerbosch Algorithm", () => {
