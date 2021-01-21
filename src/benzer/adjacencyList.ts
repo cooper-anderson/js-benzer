@@ -68,6 +68,47 @@ export default class AdjacencyList {
 		return this.edgesIn.get(tail)!.delete(tail)
 	}
 
+	bronKerbosch(): Clique[] {
+		const cliques: Clique[] = [];
+		const R: Set<Node> = new Set();
+		const X: Set<Node> = new Set();
+		const P: Set<Node> = new Set(this.nodes);
+
+		const bkHelper = (r: Set<Node>, p: Set<Node>, x: Set<Node>) => {
+			if (p.size === 0 && x.size === 0) cliques.push(r);
+
+			for (const v of p) {
+				const nv = this.edgesOut.get(v);
+				if (nv === undefined) throw new Error("error");
+				const a: Set<Node> = new Set(r);
+				const b: Set<Node> = new Set(nv);
+				const c: Set<Node> = new Set(nv);
+				a.add(v);
+
+				for (const neighbor of nv) {
+					if (!p.has(neighbor)) b.delete(neighbor);
+					if (!x.has(neighbor)) c.delete(neighbor);
+				}
+
+				bkHelper(a, b, c);
+				p.delete(v);
+				x.add(v);
+			}
+		}
+
+		bkHelper(R, P, X);
+
+		return cliques;
+	}
+
+	getCliques(): Clique[] {
+		return AdjacencyList.sortCliques(this.bronKerbosch());
+	}
+
+	static sortCliques(cliques: Clique[]): Clique[] {
+		return cliques.sort((a, b) => a.size - b.size);
+	}
+
 	static fromMatrix(labels: string[], matrix: number[][]): AdjacencyList {
 		const al = new AdjacencyList();
 		const size = labels.length;
