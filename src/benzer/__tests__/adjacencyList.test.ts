@@ -36,27 +36,36 @@ describe("AdjacencyList", () => {
 });
 
 describe("Bron-Kerbosch Algorithm", () => {
-	const al = AdjacencyList.fromMatrix(['a', 'b', 'c', 'd'], [
-		[1, 1, 1, 1],
-		[1, 1, 1, 0],
-		[1, 1, 1, 0],
-		[1, 0, 0, 1]
+	const al = AdjacencyList.fromMatrix(['α', 'β', 'γ', 'δ', 'ε', 'θ'], [
+		[0, 0, 1, 1, 1, 1],
+		[0, 0, 1, 0, 1, 0],
+		[1, 1, 0, 1, 1, 1],
+		[1, 0, 1, 0, 0, 1],
+		[1, 1, 1, 0, 0, 0],
+		[1, 0, 1, 1, 0, 0]
 	]);
 
 	let cliques: Clique[];
 	const expected: Clique[] = [
-		new Set(['a', 'b', 'c']),
-		new Set(['a', 'd'])
+		new Set(['α', 'γ', 'δ', 'θ']),
+		new Set(['α', 'γ', 'ε']),
+		new Set(['β', 'γ', 'ε'])
 	];
 
 	it("has the correct number of cliques", () => {
 		cliques = al.bronKerbosch();
-		expect(cliques.length).toBe(2);
+		expect(cliques.length).toBe(3);
 	});
 
 	it("has the correct sizes of cliques", () => {
 		for (let i = 0; i < expected.length; i++) {
 			expect(cliques[i].size).toBe(expected[i].size);
+		}
+	});
+
+	it("has the cliques in sorted order", () => {
+		for (let c = 0; c < cliques.length - 1; c++) {
+			expect(cliques[c].size).toBeGreaterThanOrEqual(cliques[c+1].size);
 		}
 	});
 
