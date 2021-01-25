@@ -1,6 +1,14 @@
+import Chain from "./chain";
+
 export type Node = string;
 export type Clique = Set<Node>;
 export type Direction = -1 | 0 | 1 | undefined;
+export type Range = {start: number, end: number};
+export type ReadData = {
+	starts: Set<Node>[],
+	ends: Set<Node>[],
+	data: Map<Node, Range>
+};
 
 const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
@@ -125,7 +133,6 @@ export default class AdjacencyList {
 	}
 
 	topologicalSort(): Node[] { // USING A SHORTCUT
-		// const order: Node[] = [];
 		const degrees: {node: Node, degree: number}[] = [];
 
 		this.edgesOut.forEach((edges, node) => degrees.push({
@@ -299,6 +306,62 @@ export default class AdjacencyList {
 		}
 
 		return out;
+	}
+
+	static getReadStartStop(
+		cliques: Map<Node, Clique>,
+		order: Node[]
+	): ReadData {
+		const alive: Set<Node> = new Set();
+		const starts: Set<Node>[] = [];
+		const ends: Set<Node>[] = [];
+		const data: Map<Node, Range> = new Map();
+
+		for (let i = 0; i < order.length; i++) {
+			const clique = cliques.get(order[i])!;
+			const removed: Set<Node> = new Set();
+			starts.push(new Set());
+			ends.push(new Set());
+
+			for (const node of alive) {
+				if (!clique.has(node)) {
+					alive.delete(node);
+					removed.add(node);
+					ends[i - 1].add(node);
+					data.get(node)!.end = i - 1;
+				}
+			}
+			for (const node of clique) {
+				if (!alive.has(node) && !removed.has(node)) {
+					alive.add(node);
+					starts[i].add(node);
+					data.set(node, {start: i, end: -1});
+				}
+			}
+		}
+
+		for (const node of alive) ends[cliques.size - 1].add(node);
+		return {starts: starts, ends: ends, data: data};
+	}
+
+	static getGenomeLabel(reads: ReadData): string {
+		const queue: Chain<Node>[] = [];
+		const checked: Set<Node> = new Set();
+		for (const node of reads.starts[0]) queue.push(new Chain(node))
+
+		while (queue.length) {
+			const current = queue.shift()!;
+			const end = reads.data.get(current.value)!.end + 1;
+			for (const node of reads.starts[end]) {
+				if (checked.has(node)) continue;
+				checked.add(node);
+				const next = current.add(node);
+				if (reads.data.get(node)!.end === -1) return next.toString();
+				queue.push(next);
+			}
+		}
+
+		return "";
 	}
 }
 

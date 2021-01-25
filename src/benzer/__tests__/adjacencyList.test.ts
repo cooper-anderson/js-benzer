@@ -151,6 +151,33 @@ describe("Clique Ordering", () => {
 
 		expectAdjListMatches(AdjacencyList.getCliqueAdjList(al), desired);
 	});
+
+	const order = ['E', 'C', 'B', 'A', 'D'];
+	const cliques: Map<string, Set<string>> = new Map();
+	cliques.set('A', new Set(['α', 'β', 'δ']));
+	cliques.set('B', new Set(['α', 'β', 'θ']));
+	cliques.set('C', new Set(['β', 'γ', 'θ']));
+	cliques.set('D', new Set(['δ', 'ε']));
+	cliques.set('E', new Set(['θ', 'λ']));
+	const data = AdjacencyList.getReadStartStop(cliques, order);
+
+	it("determines read starts and stops", () => {
+		expect(data.starts[0]).toMatchObject(new Set(['θ', 'λ']));
+		expect(data.starts[1]).toMatchObject(new Set(['β', 'γ']));
+		expect(data.starts[2]).toMatchObject(new Set(['α']));
+		expect(data.starts[3]).toMatchObject(new Set(['δ']));
+		expect(data.starts[4]).toMatchObject(new Set(['ε']));
+
+		expect(data.ends[0]).toMatchObject(new Set(['λ']));
+		expect(data.ends[1]).toMatchObject(new Set(['γ']));
+		expect(data.ends[2]).toMatchObject(new Set(['θ']));
+		expect(data.ends[3]).toMatchObject(new Set(['β', 'α']));
+		expect(data.ends[4]).toMatchObject(new Set(['δ', 'ε']));
+	});
+
+	it("determines the optimal path", () => {
+		expect(AdjacencyList.getGenomeLabel(data)).toBe("θδ");
+	});
 });
 
 describe("Topological Sort", () => {
