@@ -1,5 +1,6 @@
 export type Node = string;
 export type Clique = Set<Node>;
+export type Direction = -1 | 0 | 1 | undefined;
 
 export default class AdjacencyList {
 	private nodes: Set<string>;
@@ -105,6 +106,22 @@ export default class AdjacencyList {
 		return AdjacencyList.sortCliques(this.bronKerbosch());
 	}
 
+	getComplement(): AdjacencyList {
+		return AdjacencyList.getComplement(this);
+	}
+
+	getNodes(): Set<Node> {
+		return new Set(this.nodes);
+	}
+
+	getEdgesOut(node: Node): Set<Node> {
+		return new Set(this.edgesOut.get(node));
+	}
+
+	getEdgesIn(node: Node): Set<Node> {
+		return new Set(this.edgesIn.get(node));
+	}
+
 	static sortCliques(cliques: Clique[]): Clique[] {
 		return cliques.sort((a, b) => b.size - a.size);
 	}
@@ -136,6 +153,115 @@ export default class AdjacencyList {
 		}
 
 		return comp;
+	}
+
+	static transitivelyOrient(al: AdjacencyList): AdjacencyList {
+		const dag = new AdjacencyList(al.nodes);
+		const nodes = new Set(al.nodes);
+		const edges: Map<Node, Set<Node>> = new Map();
+
+		let first: Node = "";
+		let max = -1;
+		for (const node of al.nodes) {
+			edges.set(node, new Set());
+			const size = al.edgesOut.get(node)!.size;
+			if (size > max) {
+				max = size;
+				first = node;
+			}
+		}
+
+		nodes.delete(first);
+		for (const tail of al.edgesOut.get(first)!) dag.addEdge(first, tail);
+
+		while (dag.counts.edges < al.counts.edges) {
+			for (const a of al.nodes) {
+				const outA = al.edgesOut.get(a)!;
+				for (const b of outA) {
+					if (b === first) continue;
+					const ab = AdjacencyList.getDirection(al, dag, a, b);
+					if (!ab) continue;
+					const outB = al.edgesOut.get(b)!;
+					for (const c of outB) {
+						if (a === c) continue;
+						if (edges.get(b)!.has(c)) continue;
+						const bc = AdjacencyList.getDirection(al, dag, b, c);
+						const ac = AdjacencyList.getDirection(al, dag, a, c);
+
+						if (ab && bc && ac && Math.sign(ab + bc - ac) === 3) {
+							throw new TransOrientError(a, b, c);
+						}
+
+						if (bc === 0) {
+							if (ac === 0) continue; // No information
+							else if (ac === undefined) { // c->b := a->b
+								if (ab === 1) dag.addEdge(c, b);
+								else dag.addEdge(b, c);
+							} else {
+								if (ab === ac) continue; // No information
+								if (ab === 1) dag.addEdge(c, b);
+								else dag.addEdge(b, c);
+							}
+						} else {
+							if (ac === undefined) {
+								if (ab !== bc) continue; // Nothing to change
+								throw new TransOrientError(a, b, c);
+							} else if (ab === ac) {
+								if (ab === 1) dag.addEdge(a, c);
+								else dag.addEdge(c, a);
+							} else {
+								continue; // No information
+							}
+						}
+					}
+				}
+			}
+		}
+
+		return dag;
+	}
+
+	static getDirection(
+		al: AdjacencyList, dag: AdjacencyList,
+		a: Node, b: Node
+	): Direction {
+		if (dag.hasEdge(a, b)) return 1;
+		else if (dag.hasEdge(b, a)) return -1;
+		else if (al.hasEdge(a, b)) return 0;
+		return undefined;
+	}
+
+	static getMatrix(al: AdjacencyList): string[] {
+		const data: string[][] = [];
+
+		for (const a of al.nodes) {
+			const line: string[] = [a, ' '];
+			for (const b of al.nodes) {
+				if (a === b) line.push('*');
+				else line.push(al.hasEdge(a, b) ? '1' : '0');
+			}
+			data.push(line);
+		}
+
+		let header = "    ";
+		for (const n of al.nodes) header += n + ' ';
+		let output = data.map(line => line.join(' '));
+		output.unshift("");
+		output.unshift(header.trimEnd());
+		return output;
+	}
+}
+
+export class TransOrientError extends Error {
+	a: Node;
+	b: Node;
+	c: Node;
+
+	constructor(a: Node, b: Node, c: Node) {
+		super(`Check edges ${a}--${b} and ${b}--${c}`);
+		this.a = a;
+		this.b = b;
+		this.c = c;
 	}
 }
 

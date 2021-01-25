@@ -1,4 +1,4 @@
-import AdjacencyList, {Clique} from "../adjacencyList";
+import AdjacencyList, {Clique, TransOrientError} from "../adjacencyList";
 
 describe("AdjacencyList", () => {
 	let al: AdjacencyList;
@@ -78,4 +78,65 @@ describe("Bron-Kerbosch Algorithm", () => {
 		}
 	});
 });
+
+describe("Transitive Orientation", () => {
+	it("transitively orients graph", () => {
+		const al = AdjacencyList.fromMatrix(
+			['α', 'β', 'γ', 'δ', 'ε', 'θ', 'λ'], [
+				[1, 1, 0, 1, 0, 1, 0],
+				[1, 1, 1, 1, 0, 1, 0],
+				[0, 1, 1, 0, 0, 1, 0],
+				[1, 1, 0, 1, 1, 0, 0],
+				[0, 0, 0, 1, 1, 0, 0],
+				[1, 1, 1, 0, 0, 1, 1],
+				[0, 0, 0, 0, 0, 1, 1],
+			]
+		).getComplement();
+		const desired = AdjacencyList.fromMatrix(
+			['α', 'β', 'γ', 'δ', 'ε', 'θ', 'λ'], [
+				[0, 0, 1, 0, 0, 0, 1],
+				[0, 0, 0, 0, 0, 0, 1],
+				[0, 0, 0, 0, 0, 0, 1],
+				[0, 0, 1, 0, 0, 1, 1],
+				[1, 1, 1, 0, 0, 1, 1],
+				[0, 0, 0, 0, 0, 0, 0],
+				[0, 0, 0, 0, 0, 0, 0],
+			]
+		);
+
+		const dag = AdjacencyList.transitivelyOrient(al);
+		expectAdjListMatches(dag, desired);
+	});
+
+	it("throws error on impossible state", () => {
+		const al = AdjacencyList.fromMatrix(
+			['α', 'β', 'γ', 'δ', 'ε', 'θ', 'λ'], [
+				[1, 1, 0, 0, 0, 1, 0],
+				[1, 1, 1, 1, 0, 0, 0],
+				[0, 1, 1, 1, 0, 0, 0],
+				[0, 1, 1, 1, 1, 1, 1],
+				[0, 0, 0, 1, 1, 0, 0],
+				[1, 0, 0, 1, 0, 1, 1],
+				[0, 0, 0, 1, 0, 1, 1],
+			]
+		).getComplement();
+
+		const func = AdjacencyList.transitivelyOrient.bind(this, al);
+		expect(func).toThrow(TransOrientError);
+	});
+});
+
+function expectAdjListMatches(
+	received: AdjacencyList, expected: AdjacencyList
+): void {
+	const nodesR = received.getNodes();
+	const nodesE = expected.getNodes();
+	expect(nodesR).toMatchObject(nodesE);
+
+	for (const node of nodesE) {
+		const outR = received.getEdgesOut(node);
+		const outE = expected.getEdgesOut(node);
+		expect(outR).toMatchObject(outE)
+	}
+}
 
