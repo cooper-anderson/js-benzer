@@ -126,6 +126,49 @@ describe("Transitive Orientation", () => {
 	});
 });
 
+describe("Clique Ordering", () => {
+	it("creates the ordered clique matrix", () => {
+		const al = AdjacencyList.fromMatrix(
+			['α', 'β', 'γ', 'δ', 'ε', 'θ', 'λ'], [
+				[1, 1, 0, 1, 0, 1, 0],
+				[1, 1, 1, 1, 0, 1, 0],
+				[0, 1, 1, 0, 0, 1, 0],
+				[1, 1, 0, 1, 1, 0, 0],
+				[0, 0, 0, 1, 1, 0, 0],
+				[1, 1, 1, 0, 0, 1, 1],
+				[0, 0, 0, 0, 0, 1, 1],
+			]
+		);
+		const desired = AdjacencyList.fromMatrix(
+			['A', 'B', 'C', 'D', 'E'], [
+				[0, 1, 1, 0, 1],
+				[0, 0, 1, 0, 1],
+				[0, 0, 0, 0, 1],
+				[1, 1, 1, 0, 1],
+				[0, 0, 0, 0, 0],
+			]
+		);
+
+		expectAdjListMatches(AdjacencyList.getCliqueAdjList(al), desired);
+	});
+});
+
+describe("Topological Sort", () => {
+	it("puts the nodes in order", () => {
+		const al = AdjacencyList.fromMatrix(
+			['A', 'B', 'C', 'D', 'E'], [
+				[0, 1, 1, 0, 1],
+				[0, 0, 1, 0, 1],
+				[0, 0, 0, 0, 1],
+				[1, 1, 1, 0, 1],
+				[0, 0, 0, 0, 0],
+			]
+		);
+
+		expect(al.topologicalSort()).toMatchObject(['E', 'C', 'B', 'A', 'D']);
+	});
+});
+
 function expectAdjListMatches(
 	received: AdjacencyList, expected: AdjacencyList
 ): void {

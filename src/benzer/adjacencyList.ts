@@ -2,6 +2,8 @@ export type Node = string;
 export type Clique = Set<Node>;
 export type Direction = -1 | 0 | 1 | undefined;
 
+const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
 export default class AdjacencyList {
 	private nodes: Set<string>;
 	private edgesIn: Map<string, Set<Node>>;
@@ -120,6 +122,19 @@ export default class AdjacencyList {
 
 	getEdgesIn(node: Node): Set<Node> {
 		return new Set(this.edgesIn.get(node));
+	}
+
+	topologicalSort(): Node[] { // USING A SHORTCUT
+		// const order: Node[] = [];
+		const degrees: {node: Node, degree: number}[] = [];
+
+		this.edgesOut.forEach((edges, node) => degrees.push({
+			node: node,
+			degree: edges.size
+		}));
+
+		const sorted = degrees.sort((a, b) => a.degree - b.degree);
+		return sorted.map(item => item.node);
 	}
 
 	static sortCliques(cliques: Clique[]): Clique[] {
@@ -250,6 +265,41 @@ export default class AdjacencyList {
 		output.unshift(header.trimEnd());
 		return output;
 	}
+
+	static getCliqueAdjList(al: AdjacencyList): AdjacencyList {
+		const dag = AdjacencyList.transitivelyOrient(al.getComplement());
+		const cliques = al.getCliques();
+		const names = ALPHABET.slice(0, cliques.length).split("");
+		const out = new AdjacencyList(new Set(names));
+
+		for (let i = 0; i < cliques.length; i++) {
+			const start = cliques[i];
+			for (let j = i + 1; j < cliques.length; j++) {
+				const end = cliques[j];
+				let direction = 0;
+				for (const a of start) {
+					for (const b of end) {
+						if (a === b) continue;
+
+						const dir = AdjacencyList.getDirection(al, dag, a, b)!
+						if (dir === 0) continue;
+
+						if (direction === 0) direction = dir;
+						else if (dir !== direction) {
+							throw new CliqueOrientError(
+								cliques[i], cliques[j]
+							);
+						}
+					}
+				}
+
+				if (direction === 1) out.addEdge(names[i], names[j]);
+				else out.addEdge(names[j], names[i]);
+			}
+		}
+
+		return out;
+	}
 }
 
 export class TransOrientError extends Error {
@@ -262,6 +312,19 @@ export class TransOrientError extends Error {
 		this.a = a;
 		this.b = b;
 		this.c = c;
+	}
+}
+
+export class CliqueOrientError extends Error {
+	a: Clique;
+	b: Clique;
+
+	constructor(a: Clique, b: Clique) {
+		const c = Array.from(a).join(' ');
+		const d = Array.from(b).join(' ');
+		super(`Check cliques {${c}} and {${d}}`);
+		this.a = a;
+		this.b = b;
 	}
 }
 
