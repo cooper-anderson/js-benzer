@@ -24,7 +24,7 @@ Here you can see the number of tests I created for two classes.
 
 ---
 <div style="text-align:center">
-	<img src="./p1p2-tests.png" width="85%" alt="Example TDD output" />
+	<img src="./p1p2-tests.png" width="50%" alt="Example TDD output" />
 </div>
 
 ---
@@ -38,11 +38,15 @@ gets the point across. One thing to note is that it uses `N(v)` to refer to the
 children of node `v`.
 
 ```py
+# R: empty set -- nodes confirmed in current clique
+# P: set of all nodes -- nodes needed to be tested for the current clique
+# X: empty set -- nodes confirmed to not be in the current clique
+
 algorithm BronKerbosch(R, P, X) is
 	if P and X are both empty then
 		report R as a maximal clique
 	for each vertex v in P do
-		BronKerbosch(R ∪ {n}, P ∩ N(v), X ∩ N(v))
+		BronKerbosch(R ∪ {v}, P ∩ N(v), X ∩ N(v))
 		P ← P \ {v}
 		X ← X ∪ {v}
 ```
@@ -55,7 +59,7 @@ Given the following matrix of overlapping DNA reads, use the Bron-Kerbosch
 algorithm to list the maximal cliques. No credit given if no work is shown.
 
 $
-\text{The labels are as follows: }α, β, γ, δ, ε \\
+\text{The labels are as follows: }α, β, γ, δ, ε, θ \\
 \text{} \\
 \hspace{4em}
 \begin{bmatrix}
@@ -77,6 +81,10 @@ job is to modify the existing algorithm so that it only makes a cursive call on
 the maximal cliques. Here is something to get started:
 
 ```py
+# R: empty set -- nodes confirmed in current clique
+# P: set of all nodes -- nodes needed to be tested for the current clique
+# X: empty set -- nodes confirmed to not be in the current clique
+
 algorithm BronKerbosch(R, P, X) is
 	if P and X are both empty then
 		report R as a maximal clique
@@ -112,12 +120,16 @@ The following are the maximal cliques: `{α, γ, δ, θ},  {α, γ, ε},  {β, �
 ### Problem 2
 
 ```py
+# R: empty set -- nodes confirmed in current clique
+# P: set of all nodes -- nodes needed to be tested for the current clique
+# X: empty set -- nodes confirmed to not be in the current clique
+
 algorithm BronKerbosch(R, P, X) is
 	if P and X are both empty then
 		report R as a maximal clique
 	choose a pivot vertex u in P ∪ X
 	for ... vertex v in P \ N(u) do
-		BronKerbosch(R ∪ {n}, P ∩ N(v), X ∩ N(v))
+		BronKerbosch(R ∪ {v}, P ∩ N(v), X ∩ N(v))
 		P ← P \ {v}
 		X ← X ∪ {v}
 ```
