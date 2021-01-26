@@ -273,9 +273,10 @@ export default class AdjacencyList {
 		return output;
 	}
 
-	static getCliqueAdjList(al: AdjacencyList): AdjacencyList {
-		const dag = AdjacencyList.transitivelyOrient(al.getComplement());
-		const cliques = al.getCliques();
+	static getCliqueAdjList(
+		al: AdjacencyList, dag: AdjacencyList,
+		cliques: Clique[]
+	): AdjacencyList {
 		const names = ALPHABET.slice(0, cliques.length).split("");
 		const out = new AdjacencyList(new Set(names));
 

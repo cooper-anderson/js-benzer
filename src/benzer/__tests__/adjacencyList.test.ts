@@ -139,6 +139,7 @@ describe("Clique Ordering", () => {
 				[0, 0, 0, 0, 0, 1, 1],
 			]
 		);
+		const dag = AdjacencyList.transitivelyOrient(al.getComplement());
 		const desired = AdjacencyList.fromMatrix(
 			['A', 'B', 'C', 'D', 'E'], [
 				[0, 1, 1, 0, 1],
@@ -149,7 +150,10 @@ describe("Clique Ordering", () => {
 			]
 		);
 
-		expectAdjListMatches(AdjacencyList.getCliqueAdjList(al), desired);
+		expectAdjListMatches(
+			AdjacencyList.getCliqueAdjList(al, dag, al.getCliques()),
+			desired
+		);
 	});
 
 	const order = ['E', 'C', 'B', 'A', 'D'];
