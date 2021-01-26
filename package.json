@@ -24,6 +24,9 @@
 		"start": "BROWSER=none react-scripts start",
 		"build": "react-scripts build",
 		"test": "react-scripts test",
+		"tsc": "tsc",
+		"demo": "node ./dist/benzer/index.js",
+		"slides": "lam --live ./class/slides.md",
 		"tauri": "tauri",
 		"jest": "jest --rootDir ./src/"
 	},
